@@ -30,6 +30,8 @@ function JpPractice() {
             audio='a.mp3'
             canSelect={false}
             isSelected={false}
+            isKatakanaOn={false}
+            isRomajiOn={false}
           />
         </div>
         <div className='grid grid-rows-4 gap-4 justify-center items-center'>
@@ -42,6 +44,8 @@ function JpPractice() {
             canSelect={true}
             isSelected={selectedCardId === '1'}
             onSelect={handleCardSelect}
+            isKatakanaOn={false}
+            isRomajiOn={false}
           />
           <JpCard 
             id='2' 
@@ -52,6 +56,8 @@ function JpPractice() {
             canSelect={true}
             isSelected={selectedCardId === '2'}
             onSelect={handleCardSelect}
+            isKatakanaOn={false}
+            isRomajiOn={false}
           />
           <JpCard 
             id='3' 
@@ -62,6 +68,8 @@ function JpPractice() {
             canSelect={true}
             isSelected={selectedCardId === '3'}
             onSelect={handleCardSelect}
+            isKatakanaOn={false}
+            isRomajiOn={false}
           />
           <JpCard 
             id='4' 
@@ -72,6 +80,8 @@ function JpPractice() {
             canSelect={true}
             isSelected={selectedCardId === '4'}
             onSelect={handleCardSelect}
+            isKatakanaOn={false}
+            isRomajiOn={false}
           />
         </div>
 
