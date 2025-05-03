@@ -11,7 +11,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b-2 p-2">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-orange-500 backdrop-blur-sm border-b-2 p-2">
           <Navbar/>
         </div>
         <main className="flex-1 pt-16">

@@ -38,6 +38,7 @@ function JpCard(props: JpCardProps) {
     const audio = new Audio(audioPath);
     audio.play();
   }
+  
 
   return (
     <div 
@@ -57,6 +58,7 @@ function JpCard(props: JpCardProps) {
       <div className='col-span-1 flex flex-col justify-center items-center gap-4'>
           <Switch checked={props.isKatakanaOn} onCheckedChange={()=>{setIsKatakanaOn(!isKatakanaOn)}}/>
           <Switch checked={props.isRomajiOn} onCheckedChange={()=>{setIsRomajiOn(!isRomajiOn)}}/>
+
       </div>
       <div className='col-span-1 flex justify-center items-center'>
         <SpeakerLoudIcon className='w-6 h-6 hover:text-amber-900' onClick={handlePlayAudio}/>
