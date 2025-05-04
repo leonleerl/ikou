@@ -12,14 +12,14 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-
+import Image from "next/image"
 
 export function Navbar() {
   return (
     <div className="flex justify-between items-center">
       <div className="flex items-center gap-4">
         <Link href="/" className="flex items-center gap-2 ml-6">
-          <div className="rounded-full bg-gray-200 w-10 h-10"></div>
+          <Image src="/images/robot.jpg" alt="logo" width={40} height={40} className="rounded-full"/>
             <h1 className="text-2xl font-bold">Ikou</h1>
         </Link>
         <NavigationMenu className="mr-6">

@@ -7,11 +7,19 @@ interface JpCard {
     audio: string,
 }
 
+interface JpRound{
+    id: string,
+    card: JpCard[],
+    answer: JpCard,
+    selected: JpCard | null,
+    isCorrect: boolean,
+}
+
 interface JpGame {
     id: string,
-    cards: JpCard[],
+    detail: JpRound[],
 }
 
 
-export { JpCard, JpGame }
+export type { JpCard, JpRound, JpGame }
 
