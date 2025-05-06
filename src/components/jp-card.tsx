@@ -39,7 +39,7 @@ function JpCard(props: JpCardProps) {
   }
 
   const handlePlayAudio = () => {
-    const audioPath = `${process.env.NEXT_PUBLIC_AUDIO_PATH}/${props.audio}`
+    const audioPath = `audio/${props.audio}`
     const audio = new Audio(audioPath);
     audio.play();
   }

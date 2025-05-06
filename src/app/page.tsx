@@ -47,7 +47,7 @@ function Home() {
 
 
   const handlePlayAudio = () => {
-    const audioPath = `${process.env.NEXT_PUBLIC_AUDIO_PATH}/${game?.detail[roundIndex].answer.audio}`
+    const audioPath = `audio/${game?.detail[roundIndex].answer.audio}`
     const audio = new Audio(audioPath);
     audio.play();
   }
