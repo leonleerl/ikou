@@ -1,8 +1,8 @@
-
 import { Navbar } from "@/components";
 import "./globals.css";
 import "@radix-ui/themes/styles.css";
 import { Theme } from "@radix-ui/themes";
+import { Toaster } from "sonner";
 
 export default function RootLayout({
   children,
@@ -13,6 +13,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Theme>
+          <Toaster position="top-center" closeButton />
           <div className="fixed top-0 left-0 right-0 z-50 bg-orange-500 backdrop-blur-sm border-b-2 p-2">
             <Navbar/>
           </div>

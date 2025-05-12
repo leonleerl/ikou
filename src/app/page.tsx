@@ -1,6 +1,6 @@
 "use client"
 import { JpCard } from '@/components'
-import { Button, Switch } from '@/components/ui'
+import { Button, Switch, } from '@/components/ui'
 import { generateGame } from '@/lib/utils';
 import { JpGame } from '@/models';
 import { SpeakerLoudIcon } from '@radix-ui/react-icons';
@@ -56,21 +56,15 @@ function Home() {
     setGame(generateGame());
   }, []);
 
-  useEffect(()=>{
-    if (game && roundIndex < 9) {
-      const audioPath = `audio/${game?.detail[roundIndex].answer.audio}`
+  useEffect(() => {
+    if (!game) return;
+    
+    if ((startGame || roundIndex > 0) && roundIndex <= 9) {
+      const audioPath = `audio/${game.detail[roundIndex].answer.audio}`;
       const audio = new Audio(audioPath);
       audio.play();
     }
-  }, [roundIndex, game])
-
-  useEffect(()=>{
-    if (startGame && game) {
-      const audioPath = `audio/${game.detail[roundIndex].answer.audio}`
-      const audio = new Audio(audioPath);
-      audio.play();
-    }
-  }, [startGame, game, roundIndex])
+  }, [startGame, roundIndex, game]);
 
   if (!game) {
     return <Spinner/>;
