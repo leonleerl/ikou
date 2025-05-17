@@ -2,13 +2,31 @@
 
 import * as React from "react"
 import Link from "next/link"
-
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-import { AuthModal } from "@/components/auth"
+import { lazy, Suspense } from 'react'
+import { useSession } from "next-auth/react"
+import { Button } from "@radix-ui/themes"
+import { useRouter } from "next/navigation"
+
 import { NavigationMenuLink } from "@/components/ui"
 
+const LoginButton = lazy(() => import("./auth/login-button"));
+const LogoutButton = lazy(() => import("./auth/logout-button"));
+
 export function Navbar() {
+
+  const {data: session, status} = useSession();
+  const router = useRouter();
+
+  const handleDashboard = (id: string) => {
+    if (id) {
+      router.push(`/dashboard/${id}`);
+    } else {
+      console.error("User ID is undefined");
+    }
+  }
+
   return (
     <div className="flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2 ml-6">
@@ -16,8 +34,23 @@ export function Navbar() {
             <h1 className="text-2xl font-bold">Ikou</h1>
         </Link>
       <div className="flex items-center gap-6 mr-6">
-        <Link href={"/dashboard"} className="text-lg font-semibold text-white hover:text-amber-100">Dashboard</Link>
-        <AuthModal />
+      {/* if not logged in, show login button */}
+      {status === "unauthenticated" && (
+        <Suspense>
+          <LoginButton />
+        </Suspense>
+      )}
+      {/* if logged in, show logout button, welcome message and user image */}
+      {status === "authenticated" && (
+        <>
+          <Button variant="outline" onClick={() => handleDashboard(session?.user?.id)}>Dashboard</Button>
+          <Suspense>
+            <LogoutButton />
+          </Suspense>
+          <p>Welcome, {session?.user?.name}</p>
+          <Image src={session?.user?.image || ""} alt="user image" width={32} height={32} className="rounded-full border-2 border-black" />
+        </>
+      )}
       </div>
     </div>
   )

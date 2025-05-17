@@ -5,6 +5,9 @@ import { generateGame } from '@/lib/utils';
 import { JpGame } from '@/models';
 import { SpeakerLoudIcon } from '@radix-ui/react-icons';
 import { Spinner } from '@radix-ui/themes';
+import { useRouter } from 'next/navigation';
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 import React, { useEffect, useState } from 'react'
 
@@ -18,6 +21,10 @@ function Home() {
 
   const [openAllKatakana, setOpenAllKatakana] = useState<boolean>(false);
   const [openAllRomaji, setOpenAllRomaji] = useState<boolean>(false);
+  const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
+
+  const router = useRouter();
+  const { data: session, status } = useSession();
 
   const handleOpenAllKatakana = () => {
     setOpenAllKatakana(!openAllKatakana);
@@ -29,7 +36,6 @@ function Home() {
 
   const handleCardSelect = (id: string) => {
     setSelectedCardId(id);
-    console.log(`Selected card with ID: ${id}`);
   };
 
   const handleNextRound = () => {
@@ -37,15 +43,67 @@ function Home() {
       setRoundIndex(roundIndex + 1);
       setSelectedCardId(null);
       if (selectedCardId === game!.detail[roundIndex].answer.id) {
+        game!.detail[roundIndex].isCorrect = true;
         setAccuracy(accuracy + 1);
       }
     } 
     else {
-      alert('Game over');
+      handleFinishGame();
     }
   };
 
+  const handleFinishGame = async () => {
+    // Update the final round's correctness
+    if (selectedCardId === game!.detail[roundIndex].answer.id) {
+      game!.detail[roundIndex].isCorrect = true;
+      setAccuracy(accuracy + 1);
+    }
 
+    // Update selected card for the final round
+    if (selectedCardId) {
+      const selectedCard = game!.detail[roundIndex].card.find(card => card.id === selectedCardId);
+      game!.detail[roundIndex].selected = selectedCard || null;
+    }
+
+    setIsSubmiting(true);
+    
+    try {
+      // Submit game data to API
+      const response = await fetch('/api/game', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(game),
+        credentials: 'include', // Include cookies for auth
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error submitting game: ${response.statusText}`);
+      }
+
+      await response.json();
+      toast.success('Game completed successfully!');
+      
+      // Redirect to dashboard if user is logged in
+      if (session?.user?.id) {
+        router.push(`/dashboard/${session.user.id}`);
+      } else {
+        // Reset the game if not logged in
+        setStartGame(false);
+        setRoundIndex(0);
+        setAccuracy(0);
+        setSelectedCardId(null);
+        setGame(generateGame());
+      }
+    } catch (error) {
+      console.error('Failed to submit game:', error);
+      toast.error('Failed to submit game. Please try again.');
+    } finally {
+      setIsSubmiting(false);
+    }
+  }
+  
   const handlePlayAudio = () => {
     const audioPath = `audio/${game?.detail[roundIndex].answer.audio}`
     const audio = new Audio(audioPath);
@@ -114,7 +172,7 @@ function Home() {
         </div>
 
         <div className='flex justify-center items-center mr-10'>
-          <Button variant={'outline'} className='w-32 h-20 text-2xl' onClick={handleNextRound} disabled={selectedCardId === null}>
+          <Button variant={'outline'} className='w-32 h-20 text-2xl' onClick={handleNextRound} disabled={selectedCardId === null || isSubmiting}>
             <div className='text-2xl font-bold z-10'>Next</div>
           </Button>
         </div>

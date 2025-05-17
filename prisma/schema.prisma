@@ -15,10 +15,52 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  email    String  @unique
-  password String
-  name     String?
+  id        String     @id @default(uuid())
+  email     String  @unique
+  password  String?
+  name      String?
+  image   String?
+
+  googleId  String? @unique
   createdAt DateTime @default(now())
+  
+  games     JpGame[]
 }
+
+model JpCard {
+  id        String   @id @default(uuid())
+  hiragana  String
+  katakana  String
+  romaji    String
+  audio     String
+  
+  rounds    JpRound[] @relation("CardInRound")
+  answerFor JpRound[] @relation("AnswerCard")
+  selectedIn JpRound[] @relation("SelectedCard")
+}
+
+model JpRound {
+  id        String   @id @default(uuid())
+  isCorrect Boolean  @default(false)
+  
+  card      JpCard[] @relation("CardInRound")
+  answer    JpCard   @relation("AnswerCard", fields: [answerId], references: [id])
+  answerId  String
+  selected  JpCard?  @relation("SelectedCard", fields: [selectedId], references: [id])
+  selectedId String?
+  
+  game      JpGame   @relation(fields: [gameId], references: [id])
+  gameId    String
+}
+
+model JpGame {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  accuracy Int @default(-1)
+  
+  rounds    JpRound[]
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+}
+
 
