@@ -53,6 +53,13 @@ function Home() {
   };
 
   const handleFinishGame = async () => {
+
+    // if note logged in, alert user to login, and return
+    if (!session?.user?.id) {
+      toast.error('Please login to save your game');
+      return;
+    }
+
     // Update the final round's correctness
     if (selectedCardId === game!.detail[roundIndex].answer.id) {
       game!.detail[roundIndex].isCorrect = true;
