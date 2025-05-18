@@ -24,7 +24,7 @@ function Home() {
   const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
 
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   const handleOpenAllKatakana = () => {
     setOpenAllKatakana(!openAllKatakana);
