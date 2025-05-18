@@ -354,12 +354,12 @@ function generateRound() : JpRound {
   return round
 }
 
-export function generateGame() : JpGame {
+export function generateGame(roundLimit: number) : JpGame {
   const game : JpGame = {
     id: crypto.randomUUID(),
     detail: [],
   }
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < roundLimit; i++) {
     game.detail.push(generateRound())
   }
   return game
