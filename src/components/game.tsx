@@ -138,10 +138,16 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
     if (!startGame) {
       return (
           <div className="flex h-screen w-full items-center justify-center">
-            <div className="w-[1000px] h-[600px] bg-card border border-border rounded-lg shadow-md mb-32 flex flex-col justify-center items-center">
-
-                <Button variant={'outline'} className='w-32 h-20 text-2xl flex justify-center items-center' onClick={() => setStartGame(true)}>Start</Button>
-
+            <div className="w-[1000px] h-[600px] bg-card border border-border rounded-lg shadow-lg mb-32 flex flex-col justify-center items-center bg-gradient-to-br from-white to-slate-100 transition-all duration-300 hover:shadow-xl">
+              <h1 className="text-4xl font-bold mb-8 text-gray-800">Japanese Learning Game</h1>
+              <p className="text-lg text-gray-600 mb-10">Test your Japanese character recognition skills</p>
+              <Button 
+                variant={'outline'} 
+                className='w-40 h-24 text-2xl flex justify-center items-center transition-all duration-300 hover:bg-amber-50 hover:border-amber-300 hover:scale-105 hover:shadow-md' 
+                onClick={() => setStartGame(true)}
+              >
+                Start
+              </Button>
             </div>
           </div>
       )
@@ -150,20 +156,22 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
   
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <div className="w-[1000px] h-[600px] bg-card border border-border rounded-lg shadow-md 
-        mb-32 grid grid-cols-3 gap-4 relative">
-          <div className='absolute top-0 left-0 bg-gray-300 shadow-xl p-2 rounded-2xl ml-5 mt-5 w-[250px] h-[100px]'>
-              <div className='text-2xl font-bold'>Round {roundIndex + 1}</div>
-              <div className='text-xl'>Accuracy: {accuracy}/{roundLimit}</div>
-            <div className='flex gap-2 items-center'>
-              <Switch checked={openAllKatakana} onCheckedChange={handleOpenAllKatakana}/> <div>Katakana</div>
-              <Switch checked={openAllRomaji} onCheckedChange={handleOpenAllRomaji}/> <div>Romaji</div>
+        <div className="w-[1000px] h-[600px] border border-border rounded-lg bg-card shadow-lg 
+        mb-32 grid grid-cols-3 gap-4 relative overflow-hidden transition-all duration-300 hover:shadow-xl">
+          <div className='absolute top-0 left-0 bg-gradient-to-br from-slate-100 to-gray-200 shadow-lg p-3 rounded-xl ml-5 mt-5 w-[250px] transition-all duration-300'>
+              <div className='text-2xl font-bold mb-1'>Round {roundIndex + 1}</div>
+              <div className='text-xl mb-2'>Accuracy: {accuracy}/{roundLimit}</div>
+            <div className='flex gap-3 items-center'>
+              <Switch checked={openAllKatakana} onCheckedChange={handleOpenAllKatakana}/> <div className="text-sm font-medium">Katakana</div>
+              <Switch checked={openAllRomaji} onCheckedChange={handleOpenAllRomaji}/> <div className="text-sm font-medium">Romaji</div>
             </div>
           </div>
           <div className="flex justify-center items-center">
-            <SpeakerLoudIcon className='w-20 h-20 hover:text-amber-900' onClick={handlePlayAudio}/>
+            <div className="p-5 rounded-full bg-gradient-to-br from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-200 transition-all duration-300 cursor-pointer transform hover:scale-110">
+              <SpeakerLoudIcon className='w-16 h-16 text-amber-700 hover:text-amber-900 transition-colors' onClick={handlePlayAudio}/>
+            </div>
           </div>
-          <div className='grid grid-rows-4 gap-4 justify-center items-center'>
+          <div className='grid grid-rows-4 gap-5 justify-center items-center pr-2'>
             {game.detail[roundIndex].card.map((card) => (
               <JpCard 
                 key={card.id}
@@ -181,7 +189,10 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
           </div>
   
           <div className='flex justify-center items-center mr-10'>
-            <Button variant={'outline'} className='w-32 h-20 text-2xl' onClick={handleNextRound} disabled={selectedCardId === null || isSubmiting}>
+            <Button variant={'outline'} 
+              className={`w-32 h-20 text-2xl transition-all duration-300 ${selectedCardId === null || isSubmiting ? 'opacity-60' : 'hover:bg-amber-50 hover:border-amber-300 hover:shadow-md'}`} 
+              onClick={handleNextRound} 
+              disabled={selectedCardId === null || isSubmiting}>
               <div className='text-2xl font-bold z-10'>Next</div>
             </Button>
           </div>

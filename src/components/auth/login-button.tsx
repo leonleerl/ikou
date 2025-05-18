@@ -27,9 +27,18 @@ function LoginButton() {
     }
 
   return (
-    <div>
-      <Button onClick={handleSignIn} disabled={isLoading}>Sign in</Button>
-    </div>
+    <Button 
+      onClick={handleSignIn} 
+      disabled={isLoading}
+      className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium px-5 transition-all duration-300 hover:shadow-md"
+    >
+      {isLoading ? (
+        <>
+          <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em]"></span>
+          Loading...
+        </>
+      ) : "Sign in"}
+    </Button>
   )
 }
 

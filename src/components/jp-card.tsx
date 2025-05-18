@@ -48,23 +48,35 @@ function JpCard(props: JpCardProps) {
   return (
     <div 
       className={cn(
-        'relative rounded-lg bg-orange-400 shadow-lg w-[180px] h-[100px] grid grid-cols-4 transition-colors',
-        props.isSelected ? 'border-5 border-amber-900' : 'border border-transparent',
+        'relative rounded-lg bg-gradient-to-br from-orange-300 to-orange-400 shadow-lg w-[180px] h-[100px] grid grid-cols-4 transition-all duration-300 hover:shadow-xl cursor-pointer',
+        props.isSelected ? 'ring-4 ring-amber-600 transform scale-105' : 'ring-1 ring-transparent hover:scale-[1.02]',
         props.className
       )}
       onClick={handleClick}
     >
-      {localRomajiOn && <div className='absolute top-1 left-9'>{props.romaji}</div>}
+      {localRomajiOn && 
+        <div className='absolute top-1.5 left-7 font-medium text-amber-900 bg-amber-100/70 px-2 py-0.5 rounded-full text-xs'>
+          {props.romaji}
+        </div>
+      }
       
-      <div className='col-span-2 justify-center items-center flex text-5xl'>
+      <div className='col-span-2 justify-center items-center flex text-5xl font-medium text-white drop-shadow-sm'>
         {localKatakanaOn ? props.katakana : props.hiragana}
       </div>
-      <div className='col-span-1 flex flex-col justify-center items-center gap-4'>
-          <Switch checked={localKatakanaOn} onCheckedChange={()=>{setLocalKatakanaOn(!localKatakanaOn)}}/>
-          <Switch checked={localRomajiOn} onCheckedChange={()=>{setLocalRomajiOn(!localRomajiOn)}}/>
+      <div className='col-span-1 flex flex-col justify-center items-center gap-4 mr-1'>
+          <div className="flex flex-col items-center">
+            <Switch className="mb-1" checked={localKatakanaOn} onCheckedChange={()=>{setLocalKatakanaOn(!localKatakanaOn)}}/>
+            <span className="text-[10px] text-amber-900/70 font-medium">カタカナ</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <Switch className="mb-1" checked={localRomajiOn} onCheckedChange={()=>{setLocalRomajiOn(!localRomajiOn)}}/>
+            <span className="text-[10px] text-amber-900/70 font-medium">ローマ字</span>
+          </div>
       </div>
       <div className='col-span-1 flex justify-center items-center'>
-        <SpeakerLoudIcon className='w-6 h-6 hover:text-amber-900' onClick={handlePlayAudio}/>
+        <div className="p-2 rounded-full hover:bg-amber-300/40 transition-all">
+          <SpeakerLoudIcon className='w-6 h-6 text-amber-900 transition-transform hover:scale-110' onClick={handlePlayAudio}/>
+        </div>
       </div>
     </div>
   )

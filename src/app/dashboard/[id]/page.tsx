@@ -15,6 +15,8 @@ import {
   ArcElement
 } from 'chart.js';
 import { Pie, Line } from 'react-chartjs-2';
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 // Register ChartJS components
 ChartJS.register(
@@ -70,6 +72,8 @@ interface DateFilter {
 export default function UserDashboard({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const id = unwrappedParams.id;
+  const router = useRouter();
+  const { data: session, status } = useSession();
   
   const [games, setGames] = useState<JpGame[]>([]);
   const [filteredGames, setFilteredGames] = useState<JpGame[]>([]);
@@ -79,8 +83,6 @@ export default function UserDashboard({ params }: { params: Promise<{ id: string
   const [dateFilters, setDateFilters] = useState<DateFilter[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [topMissedCharacters, setTopMissedCharacters] = useState<MissedCharacter[]>([]);
-
-  console.log("games: ", games);
 
   // Toggle game details expansion
   const toggleGameExpansion = (gameId: string) => {
@@ -148,6 +150,8 @@ export default function UserDashboard({ params }: { params: Promise<{ id: string
     const missedMap = new Map<string, MissedCharacter>();
     
     games.forEach(game => {
+      if (!game.rounds) return;
+      
       const missed = game.rounds.filter(round => !round.isCorrect).map(round => round.answer);
       
       missed.forEach(card => {
@@ -192,16 +196,26 @@ export default function UserDashboard({ params }: { params: Promise<{ id: string
     filterGamesByDate(e.target.value);
   };
 
+  // Fetch games data
   useEffect(() => {
     async function fetchGames() {
       try {
+        // Verify that the logged-in user matches the URL param ID
+        if (status === "authenticated" && session?.user?.id !== id) {
+          setError("You don't have permission to view this dashboard");
+          setLoading(false);
+          return;
+        }
+        
         setLoading(true);
         const response = await fetch(`/api/game?userId=${id}`, {
           credentials: 'include', // Send cookies for authentication
         });
         
         if (!response.ok) {
-          throw new Error(`Error fetching games: ${response.statusText}`);
+          setError(`Error fetching games: ${response.statusText}`);
+          setLoading(false);
+          return;
         }
         
         const data = await response.json();
@@ -219,28 +233,69 @@ export default function UserDashboard({ params }: { params: Promise<{ id: string
       }
     }
     
-    fetchGames();
-  }, [id]);
+    // Only fetch if authenticated
+    if (status === "authenticated") {
+      fetchGames();
+    } else if (status === "unauthenticated") {
+      setLoading(false);
+    }
+  }, [id, status, session]);
 
   // Update top missed characters when filtered games change
   useEffect(() => {
     setTopMissedCharacters(calculateTopMissedCharacters(filteredGames));
   }, [filteredGames]);
   
-  if (loading) {
+  // Authentication loading state
+  if (status === "loading") {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <Spinner />
-        <p className="ml-2">Loading your games...</p>
+        <Spinner size="3" />
+        <p className="ml-2">Checking authentication...</p>
+      </div>
+    );
+  }
+
+  // Unauthorized state
+  if (status === "unauthenticated") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="bg-amber-50 border border-amber-300 rounded-lg p-6 shadow-md text-center max-w-md">
+          <h2 className="text-xl font-bold text-amber-800 mb-2">Unauthorised</h2>
+          <p className="text-amber-700 mb-4">Please login to access your dashboard</p>
+          <button 
+            onClick={() => router.push('/')}
+            className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium px-5 py-2 rounded transition-all duration-300 hover:shadow-md"
+          >
+            Back to home
+          </button>
+        </div>
       </div>
     );
   }
   
+  // Permission denied state
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 mx-auto max-w-2xl mt-8">
         <h2 className="text-lg font-bold">Error</h2>
         <p>{error}</p>
+        <button 
+          onClick={() => router.push('/')}
+          className="mt-4 bg-red-100 text-red-800 px-4 py-2 rounded hover:bg-red-200 transition-colors"
+        >
+          Back to home
+        </button>
+      </div>
+    );
+  }
+  
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Spinner size="3" />
+        <p className="ml-2">Loading your games...</p>
       </div>
     );
   }
@@ -443,7 +498,7 @@ export default function UserDashboard({ params }: { params: Promise<{ id: string
                 <div>
                   <h3 className="font-semibold">Game #{filteredGames.length - index}</h3>
                   <p className="text-sm text-gray-500">
-                     {game.createdAt.toLocaleString()}
+                     {new Date(game.createdAt).toLocaleString()}
                     • 
                     {game.rounds?.length || 0} rounds
                   </p>

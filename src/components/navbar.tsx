@@ -28,28 +28,40 @@ export function Navbar() {
   }
 
   return (
-    <div className="flex justify-between items-center">
-        <Link href="/" className="flex items-center gap-2 ml-6">
-          <Image src="/images/robot.jpg" alt="logo" width={40} height={40} className="rounded-full"/>
-            <h1 className="text-2xl font-bold">Ikou</h1>
+    <div className="flex justify-between items-center py-3 px-4 bg-gradient-to-r from-white to-amber-50 shadow-sm top-0 z-50 transition-all duration-300">
+        <Link href="/" className="flex items-center gap-3 transition-transform duration-300 hover:scale-105">
+          <div className="relative overflow-hidden rounded-full border-2 border-amber-300 shadow-sm">
+            <Image src="/images/robot.jpg" alt="logo" width={40} height={40} className="rounded-full hover:scale-110 transition-all duration-300"/>
+          </div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-700 to-amber-500 bg-clip-text text-transparent">Ikou</h1>
         </Link>
-      <div className="flex items-center gap-6 mr-6">
+      <div className="flex items-center gap-6">
       {/* if not logged in, show login button */}
       {status === "unauthenticated" && (
-        <Suspense>
+        <Suspense fallback={<div className="w-24 h-10 animate-pulse bg-gray-200 rounded-md"></div>}>
           <LoginButton />
         </Suspense>
       )}
       {/* if logged in, show logout button, welcome message and user image */}
       {status === "authenticated" && (
-        <>
-          <Button variant="outline" onClick={() => handleDashboard(session?.user?.id)}>Dashboard</Button>
-          <Suspense>
+        <div className="flex items-center gap-5">
+          <Button 
+            variant="outline" 
+            onClick={() => handleDashboard(session?.user?.id)}
+            className="transition-all duration-300 hover:bg-amber-50 hover:border-amber-300 hover:shadow-sm"
+          >
+            Dashboard
+          </Button>
+          <Suspense fallback={<div className="w-24 h-10 animate-pulse bg-gray-200 rounded-md"></div>}>
             <LogoutButton />
           </Suspense>
-          <p>Welcome, {session?.user?.name}</p>
-          <Image src={session?.user?.image || ""} alt="user image" width={32} height={32} className="rounded-full border-2 border-black" />
-        </>
+          <div className="flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 py-1.5 px-3 rounded-full shadow-sm">
+            <p className="font-medium text-amber-900">Welcome, <span className="text-amber-700">{session?.user?.name}</span></p>
+            <div className="relative overflow-hidden rounded-full border-2 border-amber-300">
+              <Image src={session?.user?.image || ""} alt="user image" width={32} height={32} className="rounded-full hover:scale-110 transition-all duration-300" />
+            </div>
+          </div>
+        </div>
       )}
       </div>
     </div>

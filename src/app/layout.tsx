@@ -12,19 +12,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body className="relative min-h-screen">
+        
         <AuthProvider>
             <Theme>
             <Toaster position="top-center" closeButton />
-            <div className="fixed top-0 left-0 right-0 z-50 bg-orange-500 backdrop-blur-sm border-b-2 p-2">
+            <div className="fixed top-0 left-0 right-0 border z-50 border-gray-200 bg-gradient-to-r from-white/90 to-amber-50/90 opacity-80">
               <Navbar/>
             </div>
-            <main className="flex-1 pt-16">
+
+            <main className="relative z-10 flex-1 pt-16 m-6">
               {children}
             </main>
           </Theme>
         </AuthProvider>
-
       </body>
     </html>
   );
