@@ -32,7 +32,7 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
 
     const router = useRouter();
   
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
   
     const handleOpenAllKatakana = () => {
       setOpenAllKatakana(!openAllKatakana);
@@ -61,35 +61,41 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
     };
   
     const handleFinishGame = async () => {
-  
-      // if note logged in, alert user to login, and return
-      if (!session?.user?.id) {
-        toast.error('Please login to save and track your game');
-        return;
-      }
+
+      setIsSubmiting(true);
+
+
+      const finalGame = {...game};
   
       // Update the final round's correctness
-      if (selectedCardId === game!.detail[roundIndex].answer.id) {
-        game!.detail[roundIndex].isCorrect = true;
+      if (selectedCardId === finalGame.detail[roundIndex].answer.id) {
+        finalGame!.detail[roundIndex].isCorrect = true;
         setAccuracy(accuracy + 1);
       }
   
       // Update selected card for the final round
       if (selectedCardId) {
-        const selectedCard = game!.detail[roundIndex].card.find(card => card.id === selectedCardId);
-        game!.detail[roundIndex].selected = selectedCard || null;
+        const selectedCard = finalGame!.detail[roundIndex].card.find(card => card.id === selectedCardId);
+        finalGame!.detail[roundIndex].selected = selectedCard || null;
+      }
+
+      // if the user is not logged in
+      if (!session?.user?.id) {
+        // save game result to localStorage for non-logged in users
+        localStorage.setItem("pendingGameResult", JSON.stringify(finalGame));
+        toast.success("Please login to save your progress");
+        return;
       }
   
-      setIsSubmiting(true);
       
       try {
-        // Submit game data to API
+        // Submit finalGame data to API
         const response = await fetch('/api/game', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(game),
+          body: JSON.stringify(finalGame),
           credentials: 'include', // Include cookies for auth
         });
   
@@ -130,6 +136,43 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
         audio.play();
       }
     }, [startGame, roundIndex, game, roundLimit]);
+
+    // Effect to handle submitting pending game results after login
+    useEffect(()=>{
+      const submitPendingGame = async () => {
+        if (status === "authenticated" && session?.user?.id) {
+          const pendingGame = localStorage.getItem('pendingGameResult');
+          if (pendingGame) {
+            setIsSubmiting(true);
+            try {
+              const gameData = JSON.parse(pendingGame);
+              const response = await fetch('/api/game', {
+                method: 'POST',
+                body: JSON.stringify(gameData),
+                credentials: 'include',
+              });
+
+              if (!response.ok) {
+                throw new Error(`Error submitting game: ${response.statusText}`);
+              }
+
+              await response.json();
+
+              localStorage.removeItem('pendingGameResult');
+
+              // redirect to dashboard
+              router.push(`/dashboard/${session.user.id}`);
+            } catch (error) {
+              console.error('Failed to submit game:', error);
+              toast.error('Failed to submit game. Please try again.');
+            } finally {
+              setIsSubmiting(false);
+            }
+          }
+        }
+      };
+      submitPendingGame();
+    }, [status, session, router]);
   
     if (!game) {
       return <Spinner/>;
@@ -156,7 +199,7 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
   
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <div className="w-[1000px] h-[600px] border border-border rounded-lg bg-card shadow-lg 
+        <div className="w-[1000px] h-[600px] border border-border rounded-lg shadow-lg 
         mb-32 grid grid-cols-3 gap-4 relative overflow-hidden transition-all duration-300 hover:shadow-xl">
           <div className='absolute top-0 left-0 bg-gradient-to-br from-slate-100 to-gray-200 shadow-lg p-3 rounded-xl ml-5 mt-5 w-[250px] transition-all duration-300'>
               <div className='text-2xl font-bold mb-1'>Round {roundIndex + 1}</div>
