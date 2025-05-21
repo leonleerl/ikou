@@ -62,9 +62,6 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
   
     const handleFinishGame = async () => {
 
-      setIsSubmiting(true);
-
-
       const finalGame = {...game};
   
       // Update the final round's correctness
