@@ -90,6 +90,8 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint=false, showRomajiHi
         toast.success("Please login to save your progress");
         return;
       }
+
+      setIsSubmiting(true);
   
       // Submit finalGame data to API
       await submitGame(finalGame);
@@ -122,33 +124,7 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint=false, showRomajiHi
       }
     }, [startGame, roundIndex, game, roundLimit]);
 
-    // // Effect to handle submitting pending game results after login
-    // useEffect(()=>{
-    //   const submitPendingGame = async () => {
-    //     if (status === "authenticated" && session?.user?.id) {
-    //       try{
-    //         const pendingGame = localStorage.getItem('pendingGameResult');
-    //         if (pendingGame) {
-    //           setIsSubmiting(true);
-
-    //           const gameData = JSON.parse(pendingGame);
-
-    //           await submitGame(gameData);
-
-    //         }
-    //       } catch (error) {
-    //         console.error('Error submitting pending game:', error);
-    //         toast.error('Failed to save previous game. Please try again later.');
-    //       } finally {
-    //         setIsSubmiting(false);
-    //         localStorage.removeItem('pendingGameResult');
-    //       }
-    //     }
-    //   };
-    //   submitPendingGame();
-    // }, [status, session, router]);
-
-        // Effect to handle submitting pending game results after login
+    // Effect to handle submitting pending game results after login
     useEffect(()=>{
       const submitPendingGame = async () => {
         if (status === "authenticated" && session?.user?.id) {
@@ -166,7 +142,7 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint=false, showRomajiHi
               toast.success('Previous game result saved successfully!');
 
               router.push(`/dashboard/${session.user.id}`);
-              
+
               setIsSubmiting(false);
 
             }

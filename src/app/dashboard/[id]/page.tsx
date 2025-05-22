@@ -330,11 +330,11 @@ export default function UserDashboard({ params }: { params: Promise<{ id: string
 
   // Prepare chart data for accuracy over time
   const accuracyChartData = {
-    labels: filteredGames.reverse().map(() => ''),
+    labels: filteredGames.slice(0, filteredGames.length).reverse().map((_, i) => `${i+1}`),
     datasets: [
       {
         label: 'Accuracy (%)',
-        data: filteredGames.reverse().map(game => game.accuracy >= 0 ? game.accuracy : calculateAccuracy(game)),
+        data: filteredGames.slice(0, filteredGames.length).reverse().map(game => game.accuracy >= 0 ? game.accuracy : calculateAccuracy(game)),
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         borderColor: 'rgba(75, 192, 192, 1)',
         pointBackgroundColor: 'rgba(75, 192, 192, 1)',
@@ -377,7 +377,7 @@ export default function UserDashboard({ params }: { params: Promise<{ id: string
       },
       x: {
         title: {
-          display: false,
+          display: true,
           text: 'Games'
         }
       }
