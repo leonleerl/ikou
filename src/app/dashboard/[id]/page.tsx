@@ -209,7 +209,7 @@ export default function UserDashboard({ params }: { params: Promise<{ id: string
         
         setLoading(true);
         const response = await fetch(`/api/game?userId=${id}`, {
-          credentials: 'include', // Send cookies for authentication
+          credentials: 'include', 
         });
         
         if (!response.ok) {

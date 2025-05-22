@@ -10,7 +10,6 @@ export default function Page() {
   const router = useRouter();
   
   useEffect(() => {
-    // 只在认证状态改变且已认证时进行重定向
     if (status === "authenticated" && session?.user?.id) {
       router.push(`/dashboard/${session.user.id}`);
     }

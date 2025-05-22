@@ -10,6 +10,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 import React, { useEffect, useState } from 'react'
+import { submitGame } from '@/services/gameService';
 
 interface GameProps {
     initialGame: JpGame;
@@ -54,6 +55,9 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
         if (selectedCardId === game!.detail[roundIndex].answer.id) {
           game!.detail[roundIndex].isCorrect = true;
           setAccuracy(accuracy + 1);
+          toast.success('Correct ✅');
+        } else {
+          toast.error('Incorrect ❌');
         }
       } 
       // last round
@@ -87,34 +91,15 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
         return;
       }
   
+      // Submit finalGame data to API
+      await submitGame(finalGame);
+
+      toast.success('Game completed successfully!');
       
-      try {
-        // Submit finalGame data to API
-        const response = await fetch('/api/game', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(finalGame),
-          credentials: 'include', // Include cookies for auth
-        });
-  
-        if (!response.ok) {
-          throw new Error(`Error submitting game: ${response.statusText}`);
-        }
-  
-        await response.json();
-        toast.success('Game completed successfully!');
-        
-        router.push(`/dashboard/${session.user.id}`);
+      router.push(`/dashboard/${session.user.id}`);
 
+      setIsSubmiting(false);
 
-      } catch (error) {
-        console.error('Failed to submit game:', error);
-        toast.error('Failed to submit game. Please try again.');
-      } finally {
-        setIsSubmiting(false);
-      }
     }
     
     const handlePlayAudio = () => {
@@ -144,30 +129,12 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
           const pendingGame = localStorage.getItem('pendingGameResult');
           if (pendingGame) {
             setIsSubmiting(true);
-            try {
-              const gameData = JSON.parse(pendingGame);
-              const response = await fetch('/api/game', {
-                method: 'POST',
-                body: JSON.stringify(gameData),
-                credentials: 'include',
-              });
 
-              if (!response.ok) {
-                throw new Error(`Error submitting game: ${response.statusText}`);
-              }
+            const gameData = JSON.parse(pendingGame);
 
-              await response.json();
+            await submitGame(gameData);
 
-              localStorage.removeItem('pendingGameResult');
-
-              // redirect to dashboard
-              router.push(`/dashboard/${session.user.id}`);
-            } catch (error) {
-              console.error('Failed to submit game:', error);
-              toast.error('Failed to submit game. Please try again.');
-            } finally {
-              setIsSubmiting(false);
-            }
+            setIsSubmiting(false);
           }
         }
       };
