@@ -1,24 +1,25 @@
 "use client"
-import { useRouter } from 'next/navigation';
 import { JpCard } from '@/components'
-import { Button, Switch } from '@/components/ui'
-import { generateGame } from '@/lib/utils';
+import { Button } from '@/components/ui'
 import { JpGame } from '@/models';
 import { SpeakerLoudIcon } from '@radix-ui/react-icons';
-import { Spinner } from '@radix-ui/themes'; 
+import { Spinner, Switch } from '@radix-ui/themes'; 
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 import React, { useEffect, useState } from 'react'
+import { submitGame } from '@/services/gameService';
+import { useRouter } from 'next/navigation';
+import { generateGame } from '@/lib/utils';
 
 interface GameProps {
     initialGame: JpGame;
-    roundLimit: number;
-    showKatakanaHint: boolean;
-    showRomajiHint: boolean;
+    roundLimit?: number;
+    showKatakanaHint?: boolean;
+    showRomajiHint?: boolean;
 }
 
-function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: GameProps) {
+function Game({ initialGame, roundLimit=10, showKatakanaHint=false, showRomajiHint=false}: GameProps) {
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
     const [game, setGame] = useState<JpGame>(initialGame);
     const [startGame, setStartGame] = useState<boolean>(false);
@@ -54,6 +55,9 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
         if (selectedCardId === game!.detail[roundIndex].answer.id) {
           game!.detail[roundIndex].isCorrect = true;
           setAccuracy(accuracy + 1);
+          toast.success('Correct ✅');
+        } else {
+          toast.error('Incorrect ❌');
         }
       } 
       // last round
@@ -86,35 +90,18 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
         toast.success("Please login to save your progress");
         return;
       }
+
+      setIsSubmiting(true);
   
+      // Submit finalGame data to API
+      await submitGame(finalGame);
+
+      toast.success('Game completed successfully!');
       
-      try {
-        // Submit finalGame data to API
-        const response = await fetch('/api/game', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(finalGame),
-          credentials: 'include', // Include cookies for auth
-        });
-  
-        if (!response.ok) {
-          throw new Error(`Error submitting game: ${response.statusText}`);
-        }
-  
-        await response.json();
-        toast.success('Game completed successfully!');
-        
-        router.push(`/dashboard/${session.user.id}`);
+      router.push(`/dashboard/${session.user.id}`);
 
+      setIsSubmiting(false);
 
-      } catch (error) {
-        console.error('Failed to submit game:', error);
-        toast.error('Failed to submit game. Please try again.');
-      } finally {
-        setIsSubmiting(false);
-      }
     }
     
     const handlePlayAudio = () => {
@@ -141,34 +128,24 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
     useEffect(()=>{
       const submitPendingGame = async () => {
         if (status === "authenticated" && session?.user?.id) {
-          const pendingGame = localStorage.getItem('pendingGameResult');
-          if (pendingGame) {
-            setIsSubmiting(true);
-            try {
+
+            const pendingGame = localStorage.getItem('pendingGameResult');
+            if (pendingGame) {
+              setIsSubmiting(true);
+
               const gameData = JSON.parse(pendingGame);
-              const response = await fetch('/api/game', {
-                method: 'POST',
-                body: JSON.stringify(gameData),
-                credentials: 'include',
-              });
 
-              if (!response.ok) {
-                throw new Error(`Error submitting game: ${response.statusText}`);
-              }
-
-              await response.json();
+              await submitGame(gameData);
 
               localStorage.removeItem('pendingGameResult');
 
-              // redirect to dashboard
+              toast.success('Previous game result saved successfully!');
+
               router.push(`/dashboard/${session.user.id}`);
-            } catch (error) {
-              console.error('Failed to submit game:', error);
-              toast.error('Failed to submit game. Please try again.');
-            } finally {
+
               setIsSubmiting(false);
+
             }
-          }
         }
       };
       submitPendingGame();
@@ -243,5 +220,8 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
       </div>
     )
 }
+
+
+
 
 export { Game }

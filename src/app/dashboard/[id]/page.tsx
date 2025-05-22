@@ -209,7 +209,7 @@ export default function UserDashboard({ params }: { params: Promise<{ id: string
         
         setLoading(true);
         const response = await fetch(`/api/game?userId=${id}`, {
-          credentials: 'include', // Send cookies for authentication
+          credentials: 'include', 
         });
         
         if (!response.ok) {
@@ -330,21 +330,11 @@ export default function UserDashboard({ params }: { params: Promise<{ id: string
 
   // Prepare chart data for accuracy over time
   const accuracyChartData = {
-    labels: filteredGames.slice(-10).reverse().map((_, i) => {
-      const dataLength = Math.min(filteredGames.length, 10);
-      if (dataLength >= 10) {
-        const middleIndex = Math.floor(dataLength / 2);
-        if (i === 0 || i === dataLength - 1 || i === middleIndex) {
-          return `Game ${i + 1}`;
-        }
-        return ''; 
-      }
-      return `Game ${i + 1}`;
-    }),
+    labels: filteredGames.slice(0, filteredGames.length).reverse().map((_, i) => `${i+1}`),
     datasets: [
       {
         label: 'Accuracy (%)',
-        data: filteredGames.slice(-10).reverse().map(game => game.accuracy >= 0 ? game.accuracy : calculateAccuracy(game)),
+        data: filteredGames.slice(0, filteredGames.length).reverse().map(game => game.accuracy >= 0 ? game.accuracy : calculateAccuracy(game)),
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         borderColor: 'rgba(75, 192, 192, 1)',
         pointBackgroundColor: 'rgba(75, 192, 192, 1)',
@@ -387,7 +377,7 @@ export default function UserDashboard({ params }: { params: Promise<{ id: string
       },
       x: {
         title: {
-          display: false,
+          display: true,
           text: 'Games'
         }
       }
