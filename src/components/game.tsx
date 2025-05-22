@@ -29,6 +29,7 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
     const [openAllKatakana, setOpenAllKatakana] = useState<boolean>(showKatakanaHint);
     const [openAllRomaji, setOpenAllRomaji] = useState<boolean>(showRomajiHint);
     const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
+    const [isLastRound, setIsLastRound] = useState<boolean>(true);
 
     const router = useRouter();
   
@@ -55,6 +56,7 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
           setAccuracy(accuracy + 1);
         }
       } 
+      // last round
       else {
         handleFinishGame();
       }
@@ -65,13 +67,14 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
       const finalGame = {...game};
   
       // Update the final round's correctness
-      if (selectedCardId === finalGame.detail[roundIndex].answer.id) {
+      if (selectedCardId === finalGame.detail[roundIndex].answer.id && isLastRound) {
         finalGame!.detail[roundIndex].isCorrect = true;
         setAccuracy(accuracy + 1);
       }
   
       // Update selected card for the final round
-      if (selectedCardId) {
+      if (selectedCardId && isLastRound) {
+        setIsLastRound(false);
         const selectedCard = finalGame!.detail[roundIndex].card.find(card => card.id === selectedCardId);
         finalGame!.detail[roundIndex].selected = selectedCard || null;
       }
