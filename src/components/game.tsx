@@ -1,25 +1,25 @@
 "use client"
-import { useRouter } from 'next/navigation';
 import { JpCard } from '@/components'
-import { Button, Switch } from '@/components/ui'
-import { generateGame } from '@/lib/utils';
+import { Button } from '@/components/ui'
 import { JpGame } from '@/models';
 import { SpeakerLoudIcon } from '@radix-ui/react-icons';
-import { Spinner } from '@radix-ui/themes'; 
+import { Spinner, Switch } from '@radix-ui/themes'; 
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 import React, { useEffect, useState } from 'react'
 import { submitGame } from '@/services/gameService';
+import { useRouter } from 'next/navigation';
+import { generateGame } from '@/lib/utils';
 
 interface GameProps {
     initialGame: JpGame;
-    roundLimit: number;
-    showKatakanaHint: boolean;
-    showRomajiHint: boolean;
+    roundLimit?: number;
+    showKatakanaHint?: boolean;
+    showRomajiHint?: boolean;
 }
 
-function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: GameProps) {
+function Game({ initialGame, roundLimit=10, showKatakanaHint=false, showRomajiHint=false}: GameProps) {
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
     const [game, setGame] = useState<JpGame>(initialGame);
     const [startGame, setStartGame] = useState<boolean>(false);
@@ -122,20 +122,54 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
       }
     }, [startGame, roundIndex, game, roundLimit]);
 
-    // Effect to handle submitting pending game results after login
+    // // Effect to handle submitting pending game results after login
+    // useEffect(()=>{
+    //   const submitPendingGame = async () => {
+    //     if (status === "authenticated" && session?.user?.id) {
+    //       try{
+    //         const pendingGame = localStorage.getItem('pendingGameResult');
+    //         if (pendingGame) {
+    //           setIsSubmiting(true);
+
+    //           const gameData = JSON.parse(pendingGame);
+
+    //           await submitGame(gameData);
+
+    //         }
+    //       } catch (error) {
+    //         console.error('Error submitting pending game:', error);
+    //         toast.error('Failed to save previous game. Please try again later.');
+    //       } finally {
+    //         setIsSubmiting(false);
+    //         localStorage.removeItem('pendingGameResult');
+    //       }
+    //     }
+    //   };
+    //   submitPendingGame();
+    // }, [status, session, router]);
+
+        // Effect to handle submitting pending game results after login
     useEffect(()=>{
       const submitPendingGame = async () => {
         if (status === "authenticated" && session?.user?.id) {
-          const pendingGame = localStorage.getItem('pendingGameResult');
-          if (pendingGame) {
-            setIsSubmiting(true);
 
-            const gameData = JSON.parse(pendingGame);
+            const pendingGame = localStorage.getItem('pendingGameResult');
+            if (pendingGame) {
+              setIsSubmiting(true);
 
-            await submitGame(gameData);
+              const gameData = JSON.parse(pendingGame);
 
-            setIsSubmiting(false);
-          }
+              await submitGame(gameData);
+
+              localStorage.removeItem('pendingGameResult');
+
+              toast.success('Previous game result saved successfully!');
+
+              router.push(`/dashboard/${session.user.id}`);
+              
+              setIsSubmiting(false);
+
+            }
         }
       };
       submitPendingGame();
@@ -210,5 +244,8 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint, showRomajiHint}: G
       </div>
     )
 }
+
+
+
 
 export { Game }
