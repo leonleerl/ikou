@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { options } from '../auth/[...nextauth]/options';
+import { UserService } from '@/lib/services/user.service';
+import { GameService } from '@/lib/services/game.service';
 
-// 游戏回合数据接口
+// Game Round Data Interface
 interface GameRound {
   id?: string;
   isCorrect: boolean;
@@ -30,96 +32,37 @@ interface GameRound {
   }>;
 }
 
-// 游戏数据接口
+// Game Data Interface
 interface GameData {
   id?: string;
   detail: GameRound[];
 }
 
-/**
- * GET请求 - 获取游戏数据
- * 用于dashboard展示用户的游戏历史
- */
 export async function GET(req: NextRequest) {
-  try {
-    // 获取用户ID查询参数
-    const userId = req.nextUrl.searchParams.get('userId');
 
-    // 使用NextAuth获取服务器端会话
     const session = await getServerSession(options);
 
-    // 检查用户是否已登录
+    // check if user is logged in
     if (!session || !session.user) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+      return NextResponse.json({ error: 'Not logged in' }, { status: 401 });
     }
 
-    try {
-      let where = {};
-      
-      // 如果提供了userId参数
-      if (userId) {
-        // 尝试直接使用userId查询
-        try {
-          const user = await prisma.user.findUnique({
-            where: { id: userId }
-          });
-          
-          if (user) {
-            where = { userId: user.id };
-          } else {
-            // 尝试通过googleId查找用户
-            const userByGoogleId = await prisma.user.findUnique({
-              where: { googleId: userId }
-            });
-            
-            if (userByGoogleId) {
-              where = { userId: userByGoogleId.id };
-            } else {
-              return NextResponse.json({ error: '未找到用户' }, { status: 404 });
-            }
-          }
-        } catch (error) {
-          console.error('查询用户出错:', error);
-          return NextResponse.json({ error: '用户查询失败' }, { status: 500 });
-        }
-      }
+    const userIdParm = req.nextUrl.searchParams.get('userId');
 
-      // 获取游戏列表，包括回合数据
-      const games = await prisma.jpGame.findMany({
-        where,
-        include: {
-          rounds: {
-            include: {
-              card: true,
-              answer: true,
-              selected: true
-            }
-          },
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
+    let userId = "";
 
-      return NextResponse.json(games);
-    } catch (error) {
-      console.error('处理游戏查询出错:', error);
-      return NextResponse.json({ error: '处理请求失败' }, { status: 500 });
+    if (userIdParm) {
+
+        const user = await UserService.findUserByIdOrGoogleId(userIdParm);
+        
+        if (user){
+          userId = user.id!;
+        }
     }
-  } catch (error) {
-    console.error('获取游戏数据出错:', error);
-    return NextResponse.json({ 
-      error: '获取游戏数据失败', 
-      details: error instanceof Error ? error.message : String(error) 
-    }, { status: 500 });
-  }
+    const games = await GameService.getAllGamesById(userId);
+
+    return NextResponse.json(games);
+
 }
 
 /**
@@ -133,13 +76,13 @@ export async function POST(req: NextRequest) {
 
     // 检查用户是否已登录
     if (!session || !session.user) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+      return NextResponse.json({ error: 'Not logged in' }, { status: 401 });
     }
 
     // 获取用户ID
     const sessionUserId = session.user.id;
     if (!sessionUserId) {
-      return NextResponse.json({ error: '会话中未找到用户ID' }, { status: 401 });
+      return NextResponse.json({ error: 'User ID not found in session' }, { status: 401 });
     }
 
     try {
@@ -147,14 +90,14 @@ export async function POST(req: NextRequest) {
       const gameData: GameData = await req.json();
       
       if (!gameData.detail || !Array.isArray(gameData.detail) || gameData.detail.length === 0) {
-        return NextResponse.json({ error: '无有效游戏回合数据' }, { status: 400 });
+        return NextResponse.json({ error: 'No valid game rounds data' }, { status: 400 });
       }
 
       // 确保用户在数据库中存在
       let userId = sessionUserId;
       const user = await prisma.user.findUnique({
         where: { id: sessionUserId }
-      });
+      }); 
 
       if (!user) {
         // 尝试通过邮箱查找用户
@@ -172,18 +115,18 @@ export async function POST(req: NextRequest) {
                 data: {
                   id: sessionUserId,
                   email: session.user.email,
-                  name: session.user.name || '用户',
+                  name: session.user.name || 'User',
                   image: session.user.image
                 }
               });
               userId = newUser.id;
             } catch (error) {
-              console.error('创建用户失败:', error);
-              return NextResponse.json({ error: '用户不存在且无法创建' }, { status: 404 });
+              console.error('Failed to create user: ', error);
+              return NextResponse.json({ error: 'User not found and cannot be created' }, { status: 404 });
             }
           }
         } else {
-          return NextResponse.json({ error: '无法确定用户身份' }, { status: 404 });
+          return NextResponse.json({ error: 'Cannot determine user identity' }, { status: 404 });
         }
       }
 
@@ -334,20 +277,20 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ 
         success: true,
-        message: '游戏数据保存成功',
+        message: 'Game data saved successfully',
         game
       }, { status: 201 });
     } catch (error) {
-      console.error('保存游戏数据出错:', error);
+      console.error('Failed to save game data: ', error);
       return NextResponse.json({ 
-        error: '保存游戏数据失败', 
+        error: 'Failed to save game data', 
         details: error instanceof Error ? error.message : String(error) 
       }, { status: 500 });
     }
   } catch (error) {
-    console.error('处理请求出错:', error);
+    console.error('Failed to handle request: ', error);
     return NextResponse.json({ 
-      error: '处理请求失败', 
+      error: 'Failed to handle request', 
       details: error instanceof Error ? error.message : String(error) 
     }, { status: 500 });
   }

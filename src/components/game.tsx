@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 import React, { useEffect, useState } from 'react'
-import { submitGame } from '@/services/gameService';
+import { submitGame } from '@/lib/api-client/game.client';
 import { useRouter } from 'next/navigation';
 import { generateGame } from '@/lib/utils';
 
@@ -93,7 +93,6 @@ function Game({ initialGame, roundLimit=10, showKatakanaHint=false, showRomajiHi
 
       setIsSubmiting(true);
   
-      // Submit finalGame data to API
       await submitGame(finalGame);
 
       toast.success('Game completed successfully!');
